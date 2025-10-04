@@ -3,10 +3,10 @@ import sys
 from argparse import ArgumentParser
 from typing import Optional
 
-from crawler.BookFetcher import BookFetcher
-from crawler.BookParser import BookParser
-from crawler.BookStorage import BookStorage
-from crawler.DatalakePathBuilder import DatalakePathBuilder
+from src.crawler.BookFetcher import BookFetcher
+from src.crawler.BookParser import BookParser
+from src.crawler.BookStorage import BookStorage
+from src.crawler.DatalakePathBuilder import DatalakePathBuilder
 
 
 class Crawler:
@@ -20,16 +20,30 @@ class Crawler:
         self.path_builder = DatalakePathBuilder()
         self.storage = BookStorage(self.path_builder)
 
-    def download_book(self, book_id: int) -> bool:
+    def download_book(self, book_id: int) -> tuple[bool, Optional[str], Optional[str]]:
+        """
+        Downloads a single book from Project Gutenberg.
+
+        Args:
+            book_id: The ID of the book to download
+
+        Returns:
+            Tuple of (success, date_string, hour_string) where:
+            - success is True if download and save were successful
+            - date_string is in format YYYYMMDD (e.g., "20250103")
+            - hour_string is in format HH (e.g., "14")
+        """
         raw_text = self.fetcher.fetch(book_id)
         if not raw_text:
-            return False
+            return False, None, None
 
         book_content = self.parser.parse(book_id, raw_text)
         if not book_content:
-            return False
+            return False, None, None
 
-        return self.storage.save(book_content)
+        # Save and get the timestamp information
+        success, date_str, hour_str = self.storage.save(book_content)
+        return success, date_str, hour_str
 
     def crawl_range(self, start_id: Optional[int] = None, end_id: Optional[int] = None):
         start = start_id or self.start_id
