@@ -3,10 +3,10 @@ import sys
 from argparse import ArgumentParser
 from typing import Optional
 
-from src.crawler.BookFetcher import BookFetcher
-from src.crawler.BookParser import BookParser
-from src.crawler.BookStorage import BookStorage
-from src.crawler.DatalakePathBuilder import DatalakePathBuilder
+from crawler.BookFetcher import BookFetcher
+from crawler.BookParser import BookParser
+from crawler.BookStorage import BookStorage
+from crawler.DatalakePathBuilder import DatalakePathBuilder
 
 
 class Crawler:
@@ -14,6 +14,7 @@ class Crawler:
         self.start_id = start_id
         self.end_id = end_id
         self.delay = delay
+        self.current_id = start_id
 
         self.fetcher = BookFetcher()
         self.parser = BookParser()
@@ -21,18 +22,6 @@ class Crawler:
         self.storage = BookStorage(self.path_builder)
 
     def download_book(self, book_id: int) -> tuple[bool, Optional[str], Optional[str]]:
-        """
-        Downloads a single book from Project Gutenberg.
-
-        Args:
-            book_id: The ID of the book to download
-
-        Returns:
-            Tuple of (success, date_string, hour_string) where:
-            - success is True if download and save were successful
-            - date_string is in format YYYYMMDD (e.g., "20250103")
-            - hour_string is in format HH (e.g., "14")
-        """
         raw_text = self.fetcher.fetch(book_id)
         if not raw_text:
             return False, None, None
@@ -41,9 +30,33 @@ class Crawler:
         if not book_content:
             return False, None, None
 
-        # Save and get the timestamp information
-        success, date_str, hour_str = self.storage.save(book_content)
-        return success, date_str, hour_str
+        # El storage.save ahora devuelve (success, date, hour)
+        return self.storage.save(book_content)
+
+    def download_next_book(self) -> tuple[bool, Optional[int], Optional[str], Optional[str]]:
+        max_attempts = 100
+
+        for _ in range(max_attempts):
+            if self.current_id > self.end_id:
+                logging.warning(f"Reached end of book range ({self.end_id})")
+                return False, None, None, None
+
+            book_id = self.current_id
+            self.current_id += 1
+
+            success, date_str, hour_str = self.download_book(book_id)
+
+            if success:
+                return True, book_id, date_str, hour_str
+            else:
+                logging.debug(f"Book {book_id} not available, trying next")
+                continue
+
+        logging.error(f"Failed to download any book after {max_attempts} attempts")
+        return False, None, None, None
+
+    def set_current_id(self, book_id: int):
+        self.current_id = book_id
 
     def crawl_range(self, start_id: Optional[int] = None, end_id: Optional[int] = None):
         start = start_id or self.start_id
@@ -54,7 +67,8 @@ class Crawler:
 
         for book_id in range(start, end + 1):
             logging.info(f"Processing book {book_id}")
-            if self.download_book(book_id):
+            success, _, _ = self.download_book(book_id)
+            if success:
                 successful += 1
 
         logging.info(f"Downloaded {successful}/{total} books successfully")
@@ -92,3 +106,7 @@ def main():
     )
 
     crawler.crawl_range()
+
+
+if __name__ == "__main__":
+    main()

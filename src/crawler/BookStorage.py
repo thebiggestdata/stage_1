@@ -13,15 +13,6 @@ class BookStorage:
 
     def save(self, book_content: BookContent, timestamp: Optional[datetime.datetime] = None) -> tuple[
         bool, Optional[str], Optional[str]]:
-        """
-        Saves book content to the datalake.
-
-        Returns:
-            Tuple of (success, date_string, hour_string) where:
-            - success is True if save was successful
-            - date_string is in format YYYYMMDD
-            - hour_string is in format HH
-        """
         if timestamp is None:
             timestamp = datetime.datetime.now()
 
@@ -36,7 +27,6 @@ class BookStorage:
             body_path = directory / f"{book_content.book_id}.body.txt"
             self._write_file(body_path, book_content.body)
 
-            # Extract date and hour strings from the timestamp
             date_str = timestamp.strftime("%Y%m%d")
             hour_str = timestamp.strftime("%H")
 
