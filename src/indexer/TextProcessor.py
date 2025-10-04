@@ -1,7 +1,7 @@
 from typing import List
 
-from indexer.TextTokenizer import TextTokenizer
-from indexer.StopwordsFilter import StopwordsFilter
+from src.indexer.TextTokenizer import TextTokenizer
+from src.indexer.StopwordsFilter import StopwordsFilter
 
 
 class TextProcessor:

@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 from typing import List, Set
 
-from indexer.InvertedIndexInterface import InvertedIndexInterface
+from src.indexer.InvertedIndexInterface import InvertedIndexInterface
 
 class HierarchicalInvertedIndex(InvertedIndexInterface):
     def __init__(self, base_path: str = "datamarts/inverted_index"):
