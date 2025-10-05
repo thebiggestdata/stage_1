@@ -3,10 +3,11 @@ import sys
 from argparse import ArgumentParser
 from typing import Optional
 
-from crawler.BookFetcher import BookFetcher
-from crawler.BookParser import BookParser
-from crawler.BookStorage import BookStorage
-from crawler.DatalakePathBuilder import DatalakePathBuilder
+from src.crawler.BookFetcher import BookFetcher
+from src.crawler.BookParser import BookParser
+from src.crawler.BookStorage import BookStorage
+from src.crawler.DatalakePathBuilder import DatalakePathBuilder
+from src.crawler.utils.Downloader import Downloader
 
 
 class Crawler:
@@ -15,45 +16,17 @@ class Crawler:
         self.end_id = end_id
         self.delay = delay
         self.current_id = start_id
-
         self.fetcher = BookFetcher()
         self.parser = BookParser()
         self.path_builder = DatalakePathBuilder()
         self.storage = BookStorage(self.path_builder)
+        self.downloader = Downloader(self)
 
     def download_book(self, book_id: int) -> tuple[bool, Optional[str], Optional[str]]:
-        raw_text = self.fetcher.fetch(book_id)
-        if not raw_text:
-            return False, None, None
-
-        book_content = self.parser.parse(book_id, raw_text)
-        if not book_content:
-            return False, None, None
-
-        # El storage.save ahora devuelve (success, date, hour)
-        return self.storage.save(book_content)
+        return self.downloader.download_book(book_id, crawler=self)
 
     def download_next_book(self) -> tuple[bool, Optional[int], Optional[str], Optional[str]]:
-        max_attempts = 100
-
-        for _ in range(max_attempts):
-            if self.current_id > self.end_id:
-                logging.warning(f"Reached end of book range ({self.end_id})")
-                return False, None, None, None
-
-            book_id = self.current_id
-            self.current_id += 1
-
-            success, date_str, hour_str = self.download_book(book_id)
-
-            if success:
-                return True, book_id, date_str, hour_str
-            else:
-                logging.debug(f"Book {book_id} not available, trying next")
-                continue
-
-        logging.error(f"Failed to download any book after {max_attempts} attempts")
-        return False, None, None, None
+        return self.downloader.download_next_book(self)
 
     def set_current_id(self, book_id: int):
         self.current_id = book_id
@@ -73,7 +46,6 @@ class Crawler:
 
         logging.info(f"Downloaded {successful}/{total} books successfully")
 
-
 def setup_logging():
     logging.basicConfig(
         level=logging.INFO,
@@ -81,19 +53,14 @@ def setup_logging():
         handlers=[logging.StreamHandler(sys.stdout)]
     )
 
-
 def parse_args():
     parser = ArgumentParser(description="Simple Project Gutenberg Crawler")
 
-    parser.add_argument('--start-id', type=int, default=1,
-                        help='First book ID to download')
-    parser.add_argument('--end-id', type=int, default=1000,
-                        help='Last book ID to download')
-    parser.add_argument('--delay', type=float, default=1.0,
-                        help='Delay between downloads in seconds')
+    parser.add_argument('--start-id', type=int, default=1, help='First book ID to download')
+    parser.add_argument('--end-id', type=int, default=1000, help='Last book ID to download')
+    parser.add_argument('--delay', type=float, default=1.0, help='Delay between downloads in seconds')
 
     return parser.parse_args()
-
 
 def main():
     setup_logging()

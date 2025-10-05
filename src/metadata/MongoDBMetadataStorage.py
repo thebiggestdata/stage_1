@@ -192,7 +192,8 @@ class MongoDBMetadataStorage(MetadataStorageInterface):
             self.client.close()
             logging.info("Closed MongoDB metadata storage connection")
 
-    def _document_to_metadata(self, document: dict) -> BookMetadata:
+    @staticmethod
+    def _document_to_metadata(document: dict) -> BookMetadata:
         return BookMetadata(
             book_id=document.get("book_id"),
             title=document.get("title"),

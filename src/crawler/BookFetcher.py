@@ -1,6 +1,5 @@
 import logging
 from typing import Optional
-
 import requests
 
 
@@ -9,7 +8,6 @@ class BookFetcher:
 
     def fetch(self, book_id: int) -> Optional[str]:
         url = self.BASE_URL.format(book_id=book_id)
-
         try:
             response = requests.get(url, timeout=30)
             response.raise_for_status()

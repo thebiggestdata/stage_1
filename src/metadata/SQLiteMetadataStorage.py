@@ -2,7 +2,6 @@ import logging
 import sqlite3
 from pathlib import Path
 from typing import List, Optional
-
 from src.metadata.MetadataStorageInterface import MetadataStorageInterface
 from src.metadata.BookMetadata import BookMetadata
 
@@ -15,10 +14,8 @@ class SQLiteMetadataStorage(MetadataStorageInterface):
     def initialize(self) -> bool:
         try:
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
-
             self.connection = sqlite3.connect(str(self.db_path))
             cursor = self.connection.cursor()
-
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS books (
                     book_id INTEGER PRIMARY KEY,
@@ -47,7 +44,6 @@ class SQLiteMetadataStorage(MetadataStorageInterface):
             self.connection.commit()
             logging.info(f"Initialized SQLite metadata storage at {self.db_path}")
             return True
-
         except sqlite3.Error as e:
             logging.error(f"Failed to initialize SQLite metadata storage: {e}")
             return False
@@ -56,10 +52,8 @@ class SQLiteMetadataStorage(MetadataStorageInterface):
         if not self.connection:
             logging.error("Storage not initialized. Call initialize() first.")
             return False
-
         try:
             cursor = self.connection.cursor()
-
             cursor.execute("""
                 INSERT OR REPLACE INTO books 
                 (book_id, title, author, language, release_date)
@@ -71,7 +65,6 @@ class SQLiteMetadataStorage(MetadataStorageInterface):
                 metadata.language,
                 metadata.release_date
             ))
-
             self.connection.commit()
             logging.debug(f"Inserted/updated metadata for book {metadata.book_id}")
             return True
@@ -84,7 +77,6 @@ class SQLiteMetadataStorage(MetadataStorageInterface):
         if not self.connection:
             logging.error("Storage not initialized. Call initialize() first.")
             return None
-
         try:
             cursor = self.connection.cursor()
             cursor.execute("""
@@ -92,12 +84,10 @@ class SQLiteMetadataStorage(MetadataStorageInterface):
                 FROM books
                 WHERE book_id = ?
             """, (book_id,))
-
             row = cursor.fetchone()
             if row:
                 return self._row_to_metadata(row)
             return None
-
         except sqlite3.Error as e:
             logging.error(f"Failed to get book {book_id}: {e}")
             return None
@@ -209,7 +199,8 @@ class SQLiteMetadataStorage(MetadataStorageInterface):
             self.connection.close()
             logging.info("Closed SQLite metadata storage connection")
 
-    def _row_to_metadata(self, row: tuple) -> BookMetadata:
+    @staticmethod
+    def _row_to_metadata(row: tuple) -> BookMetadata:
         return BookMetadata(
             book_id=row[0],
             title=row[1],

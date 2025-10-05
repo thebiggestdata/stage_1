@@ -1,6 +1,5 @@
 import logging
 from typing import Optional
-
 from src.crawler.BookContent import BookContent
 
 
@@ -12,11 +11,9 @@ class BookParser:
         if not self._has_valid_markers(raw_text):
             logging.warning(f"Book {book_id} doesn't have valid markers")
             return None
-
         try:
             header, body_and_footer = raw_text.split(self.START_MARKER, 1)
             body, footer = body_and_footer.split(self.END_MARKER, 1)
-
             return BookContent(
             book_id =book_id,
             header =header.strip(),

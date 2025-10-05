@@ -16,14 +16,7 @@ from src.metadata.BookMetadata import BookMetadata
 
 
 class PostgreSQLMetadataStorage(MetadataStorageInterface):
-    def __init__(
-            self,
-            host: str = "localhost",
-            port: int = 5432,
-            database: str = "gutenberg_search",
-            user: str = "postgres",
-            password: str = "postgres"
-    ):
+    def __init__(self, host: str = "localhost", port: int = 5432, database: str = "gutenberg_search", user: str = "postgres", password: str = "postgres"):
         if not PSYCOPG2_AVAILABLE:
             raise ImportError(
                 "psycopg2 is required for PostgreSQL storage. "
@@ -42,10 +35,8 @@ class PostgreSQLMetadataStorage(MetadataStorageInterface):
     def initialize(self) -> bool:
         try:
             self.connection = psycopg2.connect(**self.connection_params)
-            self.connection.autocommit = False  # Explicit transaction control
-
+            self.connection.autocommit = False
             cursor = self.connection.cursor()
-
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS books (
                     book_id INTEGER PRIMARY KEY,
@@ -91,7 +82,6 @@ class PostgreSQLMetadataStorage(MetadataStorageInterface):
 
         try:
             cursor = self.connection.cursor()
-
             cursor.execute("""
                 INSERT INTO books (book_id, title, author, language, release_date)
                 VALUES (%s, %s, %s, %s, %s)
@@ -108,11 +98,9 @@ class PostgreSQLMetadataStorage(MetadataStorageInterface):
                 metadata.language,
                 metadata.release_date
             ))
-
             self.connection.commit()
             logging.debug(f"Inserted/updated metadata for book {metadata.book_id}")
             return True
-
         except psycopg2.Error as e:
             logging.error(f"Failed to insert metadata for book {metadata.book_id}: {e}")
             self.connection.rollback()
@@ -122,7 +110,6 @@ class PostgreSQLMetadataStorage(MetadataStorageInterface):
         if not self.connection:
             logging.error("Storage not initialized. Call initialize() first.")
             return None
-
         try:
             cursor = self.connection.cursor(cursor_factory=DictCursor)
             cursor.execute("""
@@ -247,7 +234,8 @@ class PostgreSQLMetadataStorage(MetadataStorageInterface):
             self.connection.close()
             logging.info("Closed PostgreSQL metadata storage connection")
 
-    def _row_to_metadata(self, row) -> BookMetadata:
+    @staticmethod
+    def _row_to_metadata(row) -> BookMetadata:
         return BookMetadata(
             book_id=row["book_id"],
             title=row["title"],
