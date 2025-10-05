@@ -3,8 +3,8 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from crawler import DatalakePathBuilder
-from crawler.BookContent import BookContent
+from src.crawler.BookContent import BookContent
+from src.crawler.DatalakePathBuilder import DatalakePathBuilder
 
 
 class BookStorage:

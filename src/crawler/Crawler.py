@@ -3,10 +3,11 @@ import sys
 from argparse import ArgumentParser
 from typing import Optional
 
-from crawler.BookFetcher import BookFetcher
-from crawler.BookParser import BookParser
-from crawler.BookStorage import BookStorage
-from crawler.DatalakePathBuilder import DatalakePathBuilder
+from src.crawler.BookFetcher import BookFetcher
+from src.crawler.BookParser import BookParser
+from src.crawler.BookStorage import BookStorage
+from src.crawler.DatalakePathBuilder import DatalakePathBuilder
+from src.crawler.utils.Downloader import Downloader
 
 
 class Crawler:
@@ -14,22 +15,22 @@ class Crawler:
         self.start_id = start_id
         self.end_id = end_id
         self.delay = delay
-
+        self.current_id = start_id
         self.fetcher = BookFetcher()
         self.parser = BookParser()
         self.path_builder = DatalakePathBuilder()
         self.storage = BookStorage(self.path_builder)
+        self.downloader = Downloader(self)
 
-    def download_book(self, book_id: int) -> bool:
-        raw_text = self.fetcher.fetch(book_id)
-        if not raw_text:
-            return False
 
-        book_content = self.parser.parse(book_id, raw_text)
-        if not book_content:
-            return False
+    def download_book(self, book_id: int) -> tuple[bool, Optional[str], Optional[str]]:
+        return self.downloader.download_book(book_id, crawler=self)
 
-        return self.storage.save(book_content)
+    def download_next_book(self) -> tuple[bool, Optional[int], Optional[str], Optional[str]]:
+        return self.downloader.download_next_book(self)
+
+    def set_current_id(self, book_id: int):
+        self.current_id = book_id
 
     def crawl_range(self, start_id: Optional[int] = None, end_id: Optional[int] = None):
         start = start_id or self.start_id
@@ -40,7 +41,8 @@ class Crawler:
 
         for book_id in range(start, end + 1):
             logging.info(f"Processing book {book_id}")
-            if self.download_book(book_id):
+            success, _, _ = self.download_book(book_id)
+            if success:
                 successful += 1
 
         logging.info(f"Downloaded {successful}/{total} books successfully")
@@ -78,3 +80,7 @@ def main():
     )
 
     crawler.crawl_range()
+
+
+if __name__ == "__main__":
+    main()

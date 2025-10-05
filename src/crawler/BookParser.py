@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-from crawler.BookContent import BookContent
+from src.crawler.BookContent import BookContent
 
 
 class BookParser:
