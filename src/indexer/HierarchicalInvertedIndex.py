@@ -21,28 +21,19 @@ class HierarchicalInvertedIndex(InvertedIndexInterface):
     def add_document_to_term(self, term: str, book_id: int) -> bool:
         try:
             term_file = self._get_term_file_path(term)
-
-            # Create subdirectory if it doesn't exist
             term_file.parent.mkdir(parents=True, exist_ok=True)
 
-            # Read existing postings if file exists
             if term_file.exists():
                 with open(term_file, 'r', encoding='utf-8') as f:
-                    # Each line is a book ID
                     existing_ids = {int(line.strip()) for line in f if line.strip()}
             else:
                 existing_ids = set()
-
-            # Add new book_id
             existing_ids.add(book_id)
 
-            # Write back all IDs, sorted for consistency
             with open(term_file, 'w', encoding='utf-8') as f:
                 for bid in sorted(existing_ids):
                     f.write(f"{bid}\n")
-
             return True
-
         except (IOError, ValueError) as e:
             logging.error(f"Failed to add document {book_id} to term '{term}': {e}")
             return False
@@ -64,15 +55,10 @@ class HierarchicalInvertedIndex(InvertedIndexInterface):
     def get_all_terms(self) -> List[str]:
         try:
             terms = []
-
-            # Walk through all subdirectories
             for subdir in self.base_path.iterdir():
                 if subdir.is_dir():
-                    # Each .txt file represents a term
                     for term_file in subdir.glob("*.txt"):
-                        # Remove the .txt extension to get the term
                         terms.append(term_file.stem)
-
             return sorted(terms)
 
         except IOError as e:
@@ -92,5 +78,4 @@ class HierarchicalInvertedIndex(InvertedIndexInterface):
             subdir = term[0].lower()
         else:
             subdir = "_other"
-
         return self.base_path / subdir / f"{term}.txt"

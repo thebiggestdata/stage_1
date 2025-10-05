@@ -9,5 +9,4 @@ class TextTokenizer:
     def tokenize(self, text: str) -> List[str]:
         tokens = self.word_pattern.findall(text)
         normalized_tokens = [token.lower() for token in tokens]
-
         return normalized_tokens
