@@ -3,19 +3,12 @@ import random
 import time
 from pathlib import Path
 from typing import Set
-
 from src.crawler.Crawler import Crawler
 from src.indexer.BookIndexer import BookIndexer
-from src.indexer.SQLiteInvertedIndex import SQLiteInvertedIndex
-from src.metadata.MetadataExtractor import MetadataExtractor
-from src.metadata.SQLiteMetadataStorage import SQLiteMetadataStorage
 from src.indexer.HierarchicalInvertedIndex import HierarchicalInvertedIndex
 
 
 class ControlLayer:
-    """
-    Coordinates the entire data pipeline: downloading, indexing, and metadata extraction.
-    """
 
     def __init__(
             self,
@@ -25,48 +18,35 @@ class ControlLayer:
     ):
         self.control_path = Path(control_path)
         self.max_book_id = max_book_id
-
-        # Control files
         self.downloads_file = self.control_path / "downloaded_books.txt"
         self.processed_file = self.control_path / "processed_books.txt"
-
-        # Setup logging
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s'
         )
-
-        # Initialize crawler with your existing implementation
         self.crawler = Crawler()
-
-        # Initialize inverted index
         self.inverted_index = HierarchicalInvertedIndex()
+
         if not self.inverted_index.initialize():
             raise RuntimeError("Failed to initialize inverted index")
 
-        # Initialize metadata storage
         self.metadata_storage = SQLiteMetadataStorage()
+
         if not self.metadata_storage.initialize():
             raise RuntimeError("Failed to initialize metadata storage")
 
-        # Initialize processors
         self.book_indexer = BookIndexer(
             inverted_index=self.inverted_index,
             datalake_base_path=datalake_path
         )
-
         self.metadata_extractor = MetadataExtractor(
             metadata_storage=self.metadata_storage,
             datalake_base_path=datalake_path
         )
-
-        # Ensure control directory exists
         self.control_path.mkdir(parents=True, exist_ok=True)
-
         logging.info("Control Layer initialized successfully")
 
     def run_pipeline(self, num_iterations: int = 10):
-        """Runs the complete pipeline for the specified number of iterations."""
         logging.info(f"Starting pipeline for {num_iterations} iterations")
 
         for iteration in range(1, num_iterations + 1):
@@ -77,7 +57,6 @@ class ControlLayer:
             self._pipeline_step()
             self._show_statistics()
 
-            # Be nice to Project Gutenberg servers
             time.sleep(2)
 
         logging.info("\n" + "=" * 60)
@@ -86,7 +65,6 @@ class ControlLayer:
         self._show_final_statistics()
 
     def _pipeline_step(self):
-        """Executes one step of the pipeline logic."""
         downloaded = self._load_book_set(self.downloads_file)
         processed = self._load_book_set(self.processed_file)
 
@@ -98,14 +76,12 @@ class ControlLayer:
             self._download_new_book(downloaded)
 
     def _process_book(self, ready_to_process: Set[str]):
-        """Processes a book: extracts metadata and builds inverted index."""
         book_entry = ready_to_process.pop()
         book_id, download_date, download_hour = book_entry.split('|')
         book_id = int(book_id)
 
         logging.info(f"Processing book {book_id} (downloaded on {download_date} at {download_hour}:00)")
 
-        # Extract metadata
         logging.info(f"  -> Extracting metadata...")
         metadata_success = self.metadata_extractor.extract_and_store_metadata(
             book_id, download_date, download_hour
@@ -115,7 +91,6 @@ class ControlLayer:
             logging.error(f"  -> Failed to extract metadata")
             return
 
-        # Index the book
         logging.info(f"  -> Indexing book content...")
         indexing_success = self.book_indexer.index_book(
             book_id, download_date, download_hour
@@ -125,12 +100,10 @@ class ControlLayer:
             logging.error(f"  -> Failed to index book")
             return
 
-        # Mark as processed only if both succeeded
         self._mark_as_processed(book_entry)
         logging.info(f"  -> Book {book_id} successfully processed!")
 
     def _download_new_book(self, already_downloaded: Set[str]):
-        """Downloads a new book using the crawler module."""
         logging.info("No unprocessed books found. Attempting to download a new book...")
 
         downloaded_ids = {entry.split('|')[0] for entry in already_downloaded}
@@ -141,7 +114,6 @@ class ControlLayer:
             if str(candidate_id) not in downloaded_ids:
                 logging.info(f"  -> Attempting to download book {candidate_id}...")
 
-                # Use your crawler to download the book
                 success, download_date, download_hour = self.crawler.download_book(candidate_id)
 
                 if success:
@@ -154,25 +126,22 @@ class ControlLayer:
 
         logging.error("Failed to download any new book after 10 attempts")
 
+    @staticmethod
     def _load_book_set(self, file_path: Path) -> Set[str]:
-        """Loads book entries from a control file."""
         if not file_path.exists():
             return set()
         with open(file_path, 'r', encoding='utf-8') as f:
             return {line.strip() for line in f if line.strip()}
 
     def _mark_as_downloaded(self, book_entry: str):
-        """Adds a book to the downloaded books file."""
         with open(self.downloads_file, 'a', encoding='utf-8') as f:
             f.write(f"{book_entry}\n")
 
     def _mark_as_processed(self, book_entry: str):
-        """Adds a book to the processed books file."""
         with open(self.processed_file, 'a', encoding='utf-8') as f:
             f.write(f"{book_entry}\n")
 
     def _show_statistics(self):
-        """Displays current pipeline statistics."""
         downloaded = self._load_book_set(self.downloads_file)
         processed = self._load_book_set(self.processed_file)
 
@@ -182,7 +151,6 @@ class ControlLayer:
         logging.info(f"  Books pending: {len(downloaded - processed)}")
 
     def _show_final_statistics(self):
-        """Displays detailed final statistics."""
         downloaded = self._load_book_set(self.downloads_file)
         processed = self._load_book_set(self.processed_file)
 
@@ -201,14 +169,12 @@ class ControlLayer:
         logging.info(f"  Storage type: {metadata_stats['storage_type']}")
 
     def close(self):
-        """Closes all connections and cleans up resources."""
         self.inverted_index.close()
         self.metadata_storage.close()
         logging.info("Control Layer shut down successfully")
 
 
 def main():
-    """Main entry point for the Stage 1 pipeline."""
     print("=" * 60)
     print("STAGE 1: Building the Data Layer")
     print("Search Engine Project - Big Data")
@@ -226,7 +192,6 @@ def main():
         raise
     finally:
         control.close()
-
     print("\nPipeline execution finished.")
 
 
