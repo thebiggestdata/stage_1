@@ -12,51 +12,37 @@ from src.indexer.HierarchicalInvertedIndex import HierarchicalInvertedIndex
 
 
 class ControlLayer:
-    def __init__(
-            self,
-            control_path: str = "control",
-            datalake_path: str = "datalake",
-            max_book_id: int = 70000
-    ):
+    def __init__(self, control_path: str = "control", datalake_path: str = "datalake", max_book_id: int = 70000):
         self.control_path = Path(control_path)
         self.max_book_id = max_book_id
         self.downloads_file = self.control_path / "downloaded_books.txt"
         self.processed_file = self.control_path / "processed_books.txt"
         self.last_downloaded_id_file = self.control_path / "last_downloaded_id.txt"
         self.last_processed_id_file = self.control_path / "last_processed_id.txt"
-
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s'
         )
-
         self.crawler = Crawler(start_id=1, end_id=max_book_id)
-
         last_downloaded = self._get_last_downloaded_id()
         if last_downloaded:
             self.crawler.set_current_id(last_downloaded + 1)
             logging.info(f"Resuming downloads from book ID {last_downloaded + 1}")
-
         self.inverted_index = HierarchicalInvertedIndex()
         if not self.inverted_index.initialize():
             raise RuntimeError("Failed to initialize inverted index")
-
         self.metadata_storage = SQLiteMetadataStorage()
         if not self.metadata_storage.initialize():
             raise RuntimeError("Failed to initialize metadata storage")
-
         self.book_indexer = BookIndexer(
             inverted_index=self.inverted_index,
             datalake_base_path=datalake_path
         )
-
         self.metadata_extractor = MetadataExtractor(
             metadata_storage=self.metadata_storage,
             datalake_base_path=datalake_path
         )
-
         self.control_path.mkdir(parents=True, exist_ok=True)
-
         logging.info("Control Layer initialized successfully")
 
     def run_pipeline(self, num_iterations: int = 10):
@@ -66,12 +52,9 @@ class ControlLayer:
             logging.info(f"\n{'=' * 60}")
             logging.info(f"ITERATION {iteration}/{num_iterations}")
             logging.info(f"{'=' * 60}")
-
             self._pipeline_step()
             self._show_statistics()
-
             time.sleep(2)
-
         logging.info("\n" + "=" * 60)
         logging.info("Pipeline execution completed")
         logging.info("=" * 60)
@@ -80,9 +63,7 @@ class ControlLayer:
     def _pipeline_step(self):
         downloaded = self._load_book_set(self.downloads_file)
         processed = self._load_book_set(self.processed_file)
-
         ready_to_process = downloaded - processed
-
         if ready_to_process:
             self._process_book(ready_to_process)
         else:
@@ -92,36 +73,28 @@ class ControlLayer:
         book_entry = ready_to_process.pop()
         book_id, download_date, download_hour = book_entry.split('|')
         book_id = int(book_id)
-
         logging.info(f"Processing book {book_id} (downloaded on {download_date} at {download_hour}:00)")
-
         logging.info(f"  -> Extracting metadata...")
         metadata_success = self.metadata_extractor.extract_and_store_metadata(
             book_id, download_date, download_hour
         )
-
         if not metadata_success:
             logging.error(f"  -> Failed to extract metadata")
             return
-
         logging.info(f"  -> Indexing book content...")
         indexing_success = self.book_indexer.index_book(
             book_id, download_date, download_hour
         )
-
         if not indexing_success:
             logging.error(f"  -> Failed to index book")
             return
-
         self._mark_as_processed(book_entry)
-        self._save_last_processed_id(book_id)  # NUEVO
+        self._save_last_processed_id(book_id)
         logging.info(f"  -> Book {book_id} successfully processed!")
 
     def _download_new_book(self):
         logging.info("No unprocessed books found. Attempting to download next book...")
-
         success, book_id, download_date, download_hour = self.crawler.download_next_book()
-
         if success:
             book_entry = f"{book_id}|{download_date}|{download_hour}"
             self._mark_as_downloaded(book_entry)
@@ -164,7 +137,8 @@ class ControlLayer:
         except IOError as e:
             logging.error(f"Failed to save last processed ID: {e}")
 
-    def _load_book_set(self, file_path: Path) -> Set[str]:
+    @staticmethod
+    def _load_book_set(file_path: Path) -> Set[str]:
         if not file_path.exists():
             return set()
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -181,7 +155,6 @@ class ControlLayer:
     def _show_statistics(self):
         downloaded = self._load_book_set(self.downloads_file)
         processed = self._load_book_set(self.processed_file)
-
         logging.info(f"\nCurrent Statistics:")
         logging.info(f"  Books downloaded: {len(downloaded)}")
         logging.info(f"  Books processed: {len(processed)}")
@@ -190,10 +163,8 @@ class ControlLayer:
     def _show_final_statistics(self):
         downloaded = self._load_book_set(self.downloads_file)
         processed = self._load_book_set(self.processed_file)
-
         index_stats = self.book_indexer.get_index_statistics()
         metadata_stats = self.metadata_extractor.get_storage_statistics()
-
         logging.info("\nFinal Statistics:")
         logging.info(f"  Total books downloaded: {len(downloaded)}")
         logging.info(f"  Total books processed: {len(processed)}")
@@ -210,16 +181,13 @@ class ControlLayer:
         self.metadata_storage.close()
         logging.info("Control Layer shut down successfully")
 
-
 def main():
     print("=" * 60)
     print("STAGE 1: Building the Data Layer")
     print("Search Engine Project - Big Data")
     print("=" * 60)
     print()
-
     control = ControlLayer()
-
     try:
         control.run_pipeline(num_iterations=20)
     except KeyboardInterrupt:
@@ -229,7 +197,6 @@ def main():
         raise
     finally:
         control.close()
-
     print("\nPipeline execution finished.")
 
 
