@@ -3,7 +3,6 @@ import logging
 import sqlite3
 from pathlib import Path
 from typing import List, Set
-
 from src.indexer.InvertedIndexInterface import InvertedIndexInterface
 
 
@@ -41,7 +40,6 @@ class SQLiteInvertedIndex(InvertedIndexInterface):
 
         try:
             cursor = self.connection.cursor()
-
             cursor.execute("SELECT postings FROM inverted_index WHERE term = ?", (term,))
             result = cursor.fetchone()
 
@@ -49,7 +47,6 @@ class SQLiteInvertedIndex(InvertedIndexInterface):
                 postings_set = set(json.loads(result[0]))
                 postings_set.add(book_id)
                 postings_json = json.dumps(sorted(list(postings_set)))
-
                 cursor.execute(
                     "UPDATE inverted_index SET postings = ? WHERE term = ?",
                     (postings_json, term)
@@ -60,7 +57,6 @@ class SQLiteInvertedIndex(InvertedIndexInterface):
                     "INSERT INTO inverted_index (term, postings) VALUES (?, ?)",
                     (term, postings_json)
                 )
-
             self.connection.commit()
             return True
 
@@ -72,7 +68,6 @@ class SQLiteInvertedIndex(InvertedIndexInterface):
         if not self.connection:
             logging.error("Index not initialized. Call initialize() first.")
             return set()
-
         try:
             cursor = self.connection.cursor()
             cursor.execute("SELECT postings FROM inverted_index WHERE term = ?", (term,))
@@ -81,7 +76,6 @@ class SQLiteInvertedIndex(InvertedIndexInterface):
             if result:
                 return set(json.loads(result[0]))
             return set()
-
         except sqlite3.Error as e:
             logging.error(f"Failed to get documents for term '{term}': {e}")
             return set()
@@ -90,12 +84,10 @@ class SQLiteInvertedIndex(InvertedIndexInterface):
         if not self.connection:
             logging.error("Index not initialized. Call initialize() first.")
             return []
-
         try:
             cursor = self.connection.cursor()
             cursor.execute("SELECT term FROM inverted_index ORDER BY term")
             return [row[0] for row in cursor.fetchall()]
-
         except sqlite3.Error as e:
             logging.error(f"Failed to get all terms: {e}")
             return []
@@ -104,12 +96,10 @@ class SQLiteInvertedIndex(InvertedIndexInterface):
         if not self.connection:
             logging.error("Index not initialized. Call initialize() first.")
             return 0
-
         try:
             cursor = self.connection.cursor()
             cursor.execute("SELECT COUNT(*) FROM inverted_index")
             return cursor.fetchone()[0]
-
         except sqlite3.Error as e:
             logging.error(f"Failed to get index size: {e}")
             return 0

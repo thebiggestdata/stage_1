@@ -1,5 +1,4 @@
 from typing import List
-
 from src.indexer.TextTokenizer import TextTokenizer
 from src.indexer.StopwordsFilter import StopwordsFilter
 
@@ -11,7 +10,5 @@ class TextProcessor:
 
     def process(self, text: str) -> List[str]:
         tokens = self.tokenizer.tokenize(text)
-
         filtered_tokens = self.stopwords_filter.filter(tokens)
-
         return filtered_tokens

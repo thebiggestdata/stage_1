@@ -13,7 +13,6 @@ class BookIndexer:
         self.inverted_index = inverted_index
         self.text_processor = text_processor if text_processor else TextProcessor()
         self.datalake_base_path = Path(datalake_base_path)
-
         logging.info("BookIndexer initialized")
 
     def index_book(self, book_id: int, download_date: str, download_hour: str) -> bool:
@@ -25,26 +24,22 @@ class BookIndexer:
                 return False
 
             processed_terms = self.text_processor.process(book_text)
-
             logging.info(
                 f"Book {book_id}: extracted {len(processed_terms)} tokens "
                 f"(after stopword filtering)"
             )
-
             unique_terms = set(processed_terms)
-
             successful_updates = 0
+
             for term in unique_terms:
                 if self.inverted_index.add_document_to_term(term, book_id):
                     successful_updates += 1
                 else:
                     logging.warning(f"Failed to add term '{term}' for book {book_id}")
-
             logging.info(
                 f"Book {book_id}: successfully indexed {successful_updates} "
                 f"unique terms out of {len(unique_terms)}"
             )
-
             return successful_updates > 0
 
         except Exception as e:
@@ -70,11 +65,9 @@ class BookIndexer:
             if not content.strip():
                 logging.warning(f"Body file is empty for book {book_id}")
                 return None
-
             logging.debug(
                 f"Successfully read {len(content)} characters from book {book_id}"
             )
-
             return content
 
         except IOError as e:

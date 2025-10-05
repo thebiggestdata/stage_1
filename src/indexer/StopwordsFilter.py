@@ -19,7 +19,6 @@ class StopwordsFilter:
 
     def filter(self, tokens: List[str]) -> List[str]:
         filtered_tokens = [token for token in tokens if token not in self.stopwords]
-
         return filtered_tokens
 
     def is_stopword(self, token: str) -> bool:
