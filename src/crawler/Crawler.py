@@ -59,12 +59,9 @@ def setup_logging():
 def parse_args():
     parser = ArgumentParser(description="Simple Project Gutenberg Crawler")
 
-    parser.add_argument('--start-id', type=int, default=1,
-                        help='First book ID to download')
-    parser.add_argument('--end-id', type=int, default=1000,
-                        help='Last book ID to download')
-    parser.add_argument('--delay', type=float, default=1.0,
-                        help='Delay between downloads in seconds')
+    parser.add_argument('--start-id', type=int, default=1, help='First book ID to download')
+    parser.add_argument('--end-id', type=int, default=1000, help='Last book ID to download')
+    parser.add_argument('--delay', type=float, default=1.0, help='Delay between downloads in seconds')
 
     return parser.parse_args()
 
