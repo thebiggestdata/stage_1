@@ -30,6 +30,7 @@ class BookStorage:
             logging.error(f"Failed to save book {book_content.book_id}: {e}")
             return False
 
-    def _write_file(self, path: Path, content: str) -> None:
+    @staticmethod
+    def _write_file(path: Path, content: str) -> None:
         with open(path, "w", encoding="utf-8") as f:
             f.write(content)
