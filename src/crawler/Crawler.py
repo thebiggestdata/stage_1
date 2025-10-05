@@ -22,7 +22,6 @@ class Crawler:
         self.storage = BookStorage(self.path_builder)
         self.downloader = Downloader(self)
 
-
     def download_book(self, book_id: int) -> tuple[bool, Optional[str], Optional[str]]:
         return self.downloader.download_book(book_id, crawler=self)
 
@@ -47,14 +46,12 @@ class Crawler:
 
         logging.info(f"Downloaded {successful}/{total} books successfully")
 
-
 def setup_logging():
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
         handlers=[logging.StreamHandler(sys.stdout)]
     )
-
 
 def parse_args():
     parser = ArgumentParser(description="Simple Project Gutenberg Crawler")
@@ -64,7 +61,6 @@ def parse_args():
     parser.add_argument('--delay', type=float, default=1.0, help='Delay between downloads in seconds')
 
     return parser.parse_args()
-
 
 def main():
     setup_logging()

@@ -1,6 +1,5 @@
 import logging
 from typing import Optional
-
 from src.crawler.BookContent import BookContent
 
 
