@@ -34,7 +34,7 @@ class Downloader:
 
             book_id = crawler.current_id
             crawler.current_id += 1
-            success, date_str, hour_str = self.download_book(book_id)
+            success, date_str, hour_str = self.download_book(book_id, crawler)
 
             if success:
                 return True, book_id, date_str, hour_str

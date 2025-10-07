@@ -1,15 +1,7 @@
 import logging
 from typing import List, Optional
-
-try:
-    from pymongo import MongoClient, ASCENDING
-    from pymongo.errors import PyMongoError
-
-    PYMONGO_AVAILABLE = True
-except ImportError:
-    PYMONGO_AVAILABLE = False
-    logging.warning("pymongo not installed. MongoDB storage will not work.")
-
+from pymongo import MongoClient, ASCENDING
+from pymongo.errors import PyMongoError
 from src.metadata.MetadataStorageInterface import MetadataStorageInterface
 from src.metadata.BookMetadata import BookMetadata
 
@@ -18,15 +10,9 @@ class MongoDBMetadataStorage(MetadataStorageInterface):
     def __init__(
             self,
             connection_string: str = "mongodb://localhost:27017/",
-            database_name: str = "gutenberg_search",
+            database_name: str = "metadata",
             collection_name: str = "books"
     ):
-        if not PYMONGO_AVAILABLE:
-            raise ImportError(
-                "pymongo is required for MongoDB storage. "
-                "Install it with: pip install pymongo"
-            )
-
         self.connection_string = connection_string
         self.database_name = database_name
         self.collection_name = collection_name
@@ -50,9 +36,7 @@ class MongoDBMetadataStorage(MetadataStorageInterface):
             )
 
             self.collection.create_index([("author", ASCENDING)])
-
             self.collection.create_index([("language", ASCENDING)])
-
             self.collection.create_index([("title", "text")])
 
             logging.info(
@@ -66,7 +50,7 @@ class MongoDBMetadataStorage(MetadataStorageInterface):
             return False
 
     def insert_book_metadata(self, metadata: BookMetadata) -> bool:
-        if not self.collection:
+        if self.collection is None:
             logging.error("Storage not initialized. Call initialize() first.")
             return False
 
@@ -96,7 +80,7 @@ class MongoDBMetadataStorage(MetadataStorageInterface):
             return False
 
     def get_book_by_id(self, book_id: int) -> Optional[BookMetadata]:
-        if not self.collection:
+        if self.collection is None:
             logging.error("Storage not initialized. Call initialize() first.")
             return None
 
@@ -112,7 +96,7 @@ class MongoDBMetadataStorage(MetadataStorageInterface):
             return None
 
     def get_books_by_author(self, author: str) -> List[BookMetadata]:
-        if not self.collection:
+        if self.collection is None:
             logging.error("Storage not initialized. Call initialize() first.")
             return []
 
@@ -128,7 +112,7 @@ class MongoDBMetadataStorage(MetadataStorageInterface):
             return []
 
     def get_books_by_language(self, language: str) -> List[BookMetadata]:
-        if not self.collection:
+        if self.collection is None:
             logging.error("Storage not initialized. Call initialize() first.")
             return []
 
@@ -144,7 +128,7 @@ class MongoDBMetadataStorage(MetadataStorageInterface):
             return []
 
     def get_all_books(self, limit: Optional[int] = None) -> List[BookMetadata]:
-        if not self.collection:
+        if self.collection is None:
             logging.error("Storage not initialized. Call initialize() first.")
             return []
 
@@ -161,7 +145,7 @@ class MongoDBMetadataStorage(MetadataStorageInterface):
             return []
 
     def get_total_books(self) -> int:
-        if not self.collection:
+        if self.collection is None:
             logging.error("Storage not initialized. Call initialize() first.")
             return 0
 
@@ -173,7 +157,7 @@ class MongoDBMetadataStorage(MetadataStorageInterface):
             return 0
 
     def book_exists(self, book_id: int) -> bool:
-        if not self.collection:
+        if self.collection is None:
             logging.error("Storage not initialized. Call initialize() first.")
             return False
 

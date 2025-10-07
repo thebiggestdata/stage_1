@@ -1,27 +1,37 @@
 from indexer.SQLiteInvertedIndex import SQLiteInvertedIndex
 from indexer.HierarchicalInvertedIndex import HierarchicalInvertedIndex
-from indexer.InvertedIndexInterface import InvertedIndexInterface
+from indexer.MongoDBInvertedIndex import MongoDBInvertedIndex
 from metadata.SQLiteMetadataStorage import SQLiteMetadataStorage
+from metadata.MongoDBMetadataStorage import MongoDBMetadataStorage
 
 
 class BasicQueryEngine:
-    def __init__(self, index_type="sqlite"):
-        if index_type == "json":
-            self.index = InvertedIndexInterface("datamarts/inverted_index.json")
-        elif index_type == "sqlite":
+    def __init__(self, index_type="sqlite", metadata_type="sqlite"):
+        if index_type == "sqlite":
             self.index = SQLiteInvertedIndex("datamarts/inverted_index.db")
         elif index_type == "hierarchical":
             self.index = HierarchicalInvertedIndex("datamarts/inverted_index/")
+        elif index_type == "mongodb":
+            self.index = MongoDBInvertedIndex()
         else:
-            raise ValueError("Invalid index_type. Use: json | sqlite | hierarchical")
+            raise ValueError("Invalid index_type. Use: sqlite | hierarchical | mongodb")
 
         if not self.index.initialize():
             raise RuntimeError(f"Failed to initialize {index_type} index")
-        self.metadata_storage = SQLiteMetadataStorage()
+
+        if metadata_type == "sqlite":
+            self.metadata_storage = SQLiteMetadataStorage()
+        elif metadata_type == "mongodb":
+            self.metadata_storage = MongoDBMetadataStorage()
+        else:
+            raise ValueError("Invalid metadata_type. Use: sqlite | mongodb | postgresql")
+
         if not self.metadata_storage.initialize():
-            raise RuntimeError("Failed to initialize metadata storage")
+            raise RuntimeError(f"Failed to initialize {metadata_type} metadata storage")
+
         self.index_type = index_type
-        print(f"Query engine initialized with {index_type} index")
+        self.metadata_type = metadata_type
+        print(f"Query engine initialized with {index_type} index and {metadata_type} metadata")
 
     def search_by_term(self, term):
         results = self.index.get_documents_for_term(term.lower())
@@ -55,7 +65,10 @@ def interactive_search():
     print()
 
     try:
-        engine = BasicQueryEngine(index_type="hierarchical")
+        engine = BasicQueryEngine(
+            index_type="mongodb",
+            metadata_type="mongodb"
+        )
         print("=" * 60)
         print("Ready to search!")
         print("  - Enter a WORD to search in book contents")
@@ -84,14 +97,14 @@ def interactive_search():
         print(f"\nError: {e}")
     print("\nGoodbye!")
 
-def quick_search_term(term, index_type="hierarchical"):
-    engine = BasicQueryEngine(index_type=index_type)
+def quick_search_term(term, index_type="mongodb", metadata_type="mongodb"):
+    engine = BasicQueryEngine(index_type=index_type, metadata_type=metadata_type)
     results = engine.search_by_term(term)
     engine.close()
     return results
 
-def quick_search_book(book_id, index_type="hierarchical"):
-    engine = BasicQueryEngine(index_type=index_type)
+def quick_search_book(book_id, index_type="mongodb", metadata_type="mongodb"):
+    engine = BasicQueryEngine(index_type=index_type, metadata_type=metadata_type)
     metadata = engine.search_by_book_id(book_id)
     engine.close()
     return metadata

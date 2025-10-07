@@ -3,12 +3,14 @@ import time
 from pathlib import Path
 from typing import Set
 
+from metadata.MongoDBMetadataStorage import MongoDBMetadataStorage
 from src.crawler.Crawler import Crawler
 from src.indexer.BookIndexer import BookIndexer
 from src.indexer.SQLiteInvertedIndex import SQLiteInvertedIndex
 from src.metadata.MetadataExtractor import MetadataExtractor
 from src.metadata.SQLiteMetadataStorage import SQLiteMetadataStorage
 from src.indexer.HierarchicalInvertedIndex import HierarchicalInvertedIndex
+from src.indexer.MongoDBInvertedIndex import MongoDBInvertedIndex
 
 
 class ControlLayer:
@@ -28,10 +30,10 @@ class ControlLayer:
         if last_downloaded:
             self.crawler.set_current_id(last_downloaded + 1)
             logging.info(f"Resuming downloads from book ID {last_downloaded + 1}")
-        self.inverted_index = HierarchicalInvertedIndex()
+        self.inverted_index = MongoDBInvertedIndex()
         if not self.inverted_index.initialize():
             raise RuntimeError("Failed to initialize inverted index")
-        self.metadata_storage = SQLiteMetadataStorage()
+        self.metadata_storage = MongoDBMetadataStorage()
         if not self.metadata_storage.initialize():
             raise RuntimeError("Failed to initialize metadata storage")
         self.book_indexer = BookIndexer(
