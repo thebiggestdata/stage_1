@@ -1,0 +1,43 @@
+import datetime
+import logging
+from pathlib import Path
+from typing import Optional
+
+from src.crawler.BookContent import BookContent
+from src.crawler.DatalakePathBuilder import DatalakePathBuilder
+
+
+class BookStorage:
+    def __init__(self, path_builder: DatalakePathBuilder):
+        self.path_builder = path_builder
+
+    def save(self, book_content: BookContent, timestamp: Optional[datetime.datetime] = None) -> tuple[
+        bool, Optional[str], Optional[str]]:
+        if timestamp is None:
+            timestamp = datetime.datetime.now()
+
+        directory = self.path_builder.get_book_directory(timestamp)
+
+        try:
+            directory.mkdir(parents=True, exist_ok=True)
+
+            header_path = directory / f"{book_content.book_id}.header.txt"
+            self._write_file(header_path, book_content.header)
+
+            body_path = directory / f"{book_content.book_id}.body.txt"
+            self._write_file(body_path, book_content.body)
+
+            date_str = timestamp.strftime("%Y%m%d")
+            hour_str = timestamp.strftime("%H")
+
+            logging.info(f"Saved book {book_content.book_id} to {directory}")
+            return True, date_str, hour_str
+
+        except IOError as e:
+            logging.error(f"Failed to save book {book_content.book_id}: {e}")
+            return False, None, None
+
+    @staticmethod
+    def _write_file(path: Path, content: str) -> None:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)

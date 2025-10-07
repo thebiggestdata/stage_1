@@ -1,0 +1,12 @@
+# Core dependencies
+beautifulsoup4==4.13.3
+requests==2.32.3
+pymongo>=4.0.0
+psycopg2-binary==2.9.10
+
+# Progress bars and CLI
+tqdm>=4.65.0
+
+# Optional: Text processing (if used)
+# nltk>=3.8.0
+# spacy>=3.7.0
