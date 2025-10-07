@@ -33,7 +33,7 @@ def main():
     db = client[MONGO_DB]
     col = db["books_meta"]
 
-    # Reset colección + índices (equivalente a SQLite con índices en author/language/title)
+    # Reset colección + índices (equivalente a SQLite con índices en author/language/tite)
     col.drop()
     col.create_index([("author",   ASCENDING)], name="idx_author")
     col.create_index([("language", ASCENDING)], name="idx_language")

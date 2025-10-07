@@ -9,7 +9,7 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 from src.metadata.SQLiteMetadataStorage import SQLiteMetadataStorage
 from src.metadata.BookMetadata import BookMetadata
 
-# --- configuración ---
+
 random.seed(7)
 DB_PATH = Path("bench_out/step1_metadata.sqlite")
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)

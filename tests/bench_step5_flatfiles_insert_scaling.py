@@ -66,7 +66,7 @@ def run_avg(n: int):
 def main():
     for n in SIZES:
         t_csv, t_json = run_avg(n)
-        # líneas simples, una por backend+tamaño
+
         print(f"INSERT_CSV_SECONDS_{n}={t_csv:.2f}")
         print(f"INSERT_JSON_SECONDS_{n}={t_json:.2f}")
 

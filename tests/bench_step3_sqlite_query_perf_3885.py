@@ -65,7 +65,7 @@ t0 = time.perf_counter()
 res_lang = st.get_books_by_language(lang_target)
 t_lang = time.perf_counter() - t0
 
-# "title contains": con tu API no hay LIKE, lo simulamos en Python
+
 t0 = time.perf_counter()
 all_books = st.get_all_books()
 res_title = [b for b in all_books if word_target in (b.title or "").lower()]

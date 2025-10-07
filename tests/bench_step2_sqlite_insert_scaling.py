@@ -1,4 +1,4 @@
-# tests/bench_step2_sqlite_insert_scaling.py
+
 import sys, pathlib, random, string, time
 from datetime import date
 from pathlib import Path

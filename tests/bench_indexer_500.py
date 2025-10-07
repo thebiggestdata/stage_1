@@ -30,7 +30,7 @@ OUTDIR.mkdir(parents=True, exist_ok=True)
 
 # -------- Utilidades --------
 def pick_bodies(max_n=500):
-    """Devuelve hasta max_n archivos *.body.txt y el total encontrado."""
+
     files = sorted(DATALAKE.rglob("*.body.txt"))
     return files[:max_n], len(files)
 

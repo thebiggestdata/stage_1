@@ -1,4 +1,4 @@
-# tests/bench_step4_flatfiles_insert_3885.py
+
 import random, string, time, json, csv
 from datetime import date
 from pathlib import Path

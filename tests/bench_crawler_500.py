@@ -26,7 +26,7 @@ def load_ids():
 def crawler_process_id(crawler, book_id: int, datalake_base: str) -> bool:
     if crawler is None:
         return False
-    # candidatos comunes: ajusta aquí si tu Crawler usa otro nombre
+
     method_names = [
         "fetch_and_store", "process_one", "crawl_one",
         "run_one", "download_and_save", "handle_book_id"

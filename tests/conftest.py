@@ -29,7 +29,7 @@ def medium_book_text():
         "se filtraba entre los muros. A medida que avanzaba, recordaba los secretos del "
         "manuscrito que había encontrado. "
     )
-    return paragraph * 50  # repite para generar un texto más largo
+    return paragraph * 50
 
 @pytest.fixture(scope="session")
 def book_documents():
