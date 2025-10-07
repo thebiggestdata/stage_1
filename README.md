@@ -245,8 +245,11 @@ Use MongoDB instead of PostgreSQL (already configured by default)
 
 ## 👥 Authors
 
-- Juan Diego ([juand4569](https://github.com/juand4569))
-- [Other collaborators]
+- Juan Diego González Noguera ([juand4569](https://github.com/juand4569))
+- Pablo Herrera González ([D4rk-h](https://github.com/D4rk-h))
+- Jaime Ercilla Martín ([jaimeercilla11](https://github.com/jaimeercilla11))
+- Miguel Cabeza Lantigua ([migcablan](https://github.com/migcablan))
+- Alejandro Hernández de León ([alehernandez123](https://github.com/alehernandez123))
 
 ## 📄 License
 
