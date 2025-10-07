@@ -27,6 +27,7 @@ src/
 │   ├── MongoDBMetadataStorage.py
 │   ├── SQLiteMetadataStorage.py
 │   └── BookMetadata.py
+├── tests/                # Logic to benchmark the code
 ├── ControlLayer.py       # Main pipeline orchestrator
 └── BasicQueryEngine.py   # CLI search interface
 

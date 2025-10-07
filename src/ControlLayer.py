@@ -176,7 +176,7 @@ def main():
 
     control = ControlLayer()
     try:
-        control.run_pipeline(total_books=20)
+        control.run_pipeline(total_books=100)
     except KeyboardInterrupt:
         print("\n\nPipeline interrupted by user")
     except Exception as e:
